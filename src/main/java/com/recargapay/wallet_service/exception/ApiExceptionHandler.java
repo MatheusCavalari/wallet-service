@@ -31,4 +31,13 @@ public class ApiExceptionHandler {
         pd.setDetail(details);
         return pd;
     }
+
+    @ExceptionHandler(InsufficientFundsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ProblemDetail handleInsufficientFunds(InsufficientFundsException ex) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        pd.setTitle("Insufficient funds");
+        pd.setDetail(ex.getMessage());
+        return pd;
+    }
 }

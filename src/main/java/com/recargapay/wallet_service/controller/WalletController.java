@@ -1,9 +1,8 @@
 package com.recargapay.wallet_service.controller;
 
+import com.recargapay.wallet_service.domain.LedgerEntry;
 import com.recargapay.wallet_service.domain.Wallet;
-import com.recargapay.wallet_service.dto.CreateWalletRequest;
-import com.recargapay.wallet_service.dto.CreateWalletResponse;
-import com.recargapay.wallet_service.dto.WalletBalanceResponse;
+import com.recargapay.wallet_service.dto.*;
 import com.recargapay.wallet_service.service.WalletService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,5 +29,31 @@ public class WalletController {
     public WalletBalanceResponse balance(@PathVariable UUID walletId) {
         Wallet wallet = walletService.getWallet(walletId);
         return new WalletBalanceResponse(wallet.getId(), wallet.getBalance(), "now");
+    }
+
+    @PostMapping("/{walletId}/deposit")
+    @ResponseStatus(HttpStatus.CREATED)
+    public OperationResponse deposit(
+            @PathVariable UUID walletId,
+            @Valid @RequestBody AmountRequest request,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey
+    ) {
+        LedgerEntry entry = walletService.deposit(walletId, request.amount(), idempotencyKey);
+        Wallet wallet = walletService.getWallet(walletId);
+
+        return new OperationResponse(walletId, entry.getId(), wallet.getBalance(), entry.getCreatedAt());
+    }
+
+    @PostMapping("/{walletId}/withdraw")
+    @ResponseStatus(HttpStatus.CREATED)
+    public OperationResponse withdraw(
+            @PathVariable UUID walletId,
+            @Valid @RequestBody AmountRequest request,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey
+    ) {
+        LedgerEntry entry = walletService.withdraw(walletId, request.amount(), idempotencyKey);
+        Wallet wallet = walletService.getWallet(walletId);
+
+        return new OperationResponse(walletId, entry.getId(), wallet.getBalance(), entry.getCreatedAt());
     }
 }
