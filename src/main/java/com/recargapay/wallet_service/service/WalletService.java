@@ -80,4 +80,10 @@ public class WalletService {
 
         return ledgerEntryRepository.save(entry);
     }
+
+    public BigDecimal getBalanceAt(UUID walletId, Instant at) {
+        // ensure wallet exists (better error semantics)
+        getWallet(walletId);
+        return ledgerEntryRepository.calculateBalanceAt(walletId, at);
+    }
 }

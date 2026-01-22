@@ -26,9 +26,18 @@ public class WalletController {
     }
 
     @GetMapping("/{walletId}/balance")
-    public WalletBalanceResponse balance(@PathVariable UUID walletId) {
-        Wallet wallet = walletService.getWallet(walletId);
-        return new WalletBalanceResponse(wallet.getId(), wallet.getBalance(), "now");
+    public WalletBalanceResponse balance(
+            @PathVariable UUID walletId,
+            @RequestParam(value = "at", required = false) String at
+    ) {
+        if (at == null || at.isBlank()) {
+            Wallet wallet = walletService.getWallet(walletId);
+            return new WalletBalanceResponse(wallet.getId(), wallet.getBalance(), "now");
+        }
+
+        java.time.Instant instant = java.time.Instant.parse(at);
+        java.math.BigDecimal balanceAt = walletService.getBalanceAt(walletId, instant);
+        return new WalletBalanceResponse(walletId, balanceAt, at);
     }
 
     @PostMapping("/{walletId}/deposit")
